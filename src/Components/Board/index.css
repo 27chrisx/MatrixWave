@@ -1,0 +1,14 @@
+.divBoard {
+  margin-top: -583px;
+  margin-left: 210px;
+  width: 1000px;
+  height: 700px;
+  border: 1px;
+  border-style: solid;
+  border-color: rgb(75, 43, 0);
+  flex-shrink: 0;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}

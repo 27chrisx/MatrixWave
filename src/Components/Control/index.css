@@ -1,0 +1,14 @@
+.divControl {
+  margin-top: 30px;
+  margin-left: 2px;
+  width: 200px;
+  height: 580px;
+  border: 2px;
+  border-style: solid;
+  border-color: rgb(75, 43, 0);
+  flex-shrink: 0;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
