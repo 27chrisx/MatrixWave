@@ -1,5 +1,5 @@
 .divBoard {
-  margin-top: -583px;
+  margin-top: -303px;
   margin-left: 210px;
   width: 1000px;
   height: 700px;
@@ -11,4 +11,12 @@
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+  overflow: hidden;
+}
+
+.svgLock{
+  width: 140%;
+  height: 120%;
+  margin-left: -20%;
+  margin-top: -7%;
 }

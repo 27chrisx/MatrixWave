@@ -13,7 +13,15 @@ export default class App extends Component {
       stepNum: [],
       moveNum: [],
       stepChange: [],
-      moveChange: []
+      moveChange: [],
+      all: 1000,
+      stepMaxNum: null,
+      stepMinNum: null,
+      moveMaxChange: null,
+      moveMinChange: null,
+      stepMaxChange: null,
+      stepMinChange: null,
+      steps: 7
     }
   }
 
@@ -24,28 +32,38 @@ export default class App extends Component {
     this.moveChange()
   }
 
-  //生成随机字符串数据
+  //生成随机字符串数据(1~26)
   dataSet = () => {
     let dataSet = []
-    for(let i = 0;i < 5000;i++){
+    for(let i = 0;i < 1000;i++){
       let dataUnit = []
-      let num = Math.ceil(Math.random() * 100 % 8)
+      let num = Math.ceil(cauchyRandom(0.5, 0.5) * 100 % 7)
+      while(num > 1 && Math.random() > 0.98 - 0.12 * num){
+        num--
+      }
       for(let j = 0;j < num;j++){
-        dataUnit[j] = Math.ceil(Math.random() * 100 % 26)
-        while(j !== 0 && dataUnit[j] === dataUnit[j - 1]){
-          dataUnit[j] = Math.ceil(Math.random() * 100 % 26)
+        dataUnit[j] = Math.ceil(cauchyRandom(0.05 + 0.053 * Math.floor(Math.random() * 100 % 5), 0.002 * Math.ceil(Math.random() * 100 % 3)) * 100 % 27)
+        while(j !== 0 && (dataUnit[j] % (j === 1 ? 1 : (j - 1)) !== 0 || dataUnit[j] > 26 || dataUnit[j] === 0 || dataUnit[j] === dataUnit[j - 1])){
+          dataUnit[j] = Math.ceil(cauchyRandom(0.05 + 0.053 * Math.floor(Math.random() * 100 % 5), 0.002 * Math.ceil(Math.random() * 100 % 3)) * 100 % 27)
         }
       }
       dataSet[i] = dataUnit
     }
-    console.log(dataSet)
     return dataSet
+    function cauchyRandom(a, b) {
+      let u,cauchy;
+      u = Math.random();
+      cauchy = a - b / Math.tan(Math.PI * u);
+      return cauchy.toFixed(2);
+    }
   }
 
-  //函数处理每步总值
+  //函数处理每步总值(0~25+26)
   stepNum = () => {
+    let stepMaxNum = 0
+    let stepMinNum = this.state.all
     let stepNum = []
-    for(let i = 0;i < 8;i++){
+    for(let i = 0;i < this.state.steps;i++){
       let oneStep = []
       for(let j = 0;j < 26;j++){
         oneStep[j] = 0
@@ -75,16 +93,30 @@ export default class App extends Component {
         }
         return null
       })
+      oneStep.map((obj) => {
+        if(obj > stepMaxNum){
+          stepMaxNum = obj
+        }
+        if(obj < stepMinNum){
+          stepMinNum = obj
+        }
+        return null
+      })
       stepNum[i] = oneStep
     }
-    console.log(stepNum)
-    this.setState({stepNum: stepNum})
+    this.setState({
+      stepNum: stepNum,
+      stepMaxNum: stepMaxNum,
+      stepMinNum: stepMinNum
+    })
   }
 
-  //函数处理转步总值
+  //函数处理转步总值(0~25+26)
   moveNum = () => {
+    let moveMaxNum = 0
+    let moveMinNum = this.state.all
     let moveNum = []
-    for(let i = 0;i < 7;i++){
+    for(let i = 0;i < this.state.steps - 1;i++){
       let oneStepMove = []
       for(let j = 0;j < 26;j++){
         let oneStartMove = []
@@ -117,17 +149,31 @@ export default class App extends Component {
           return null
         })
         oneStepMove[j] = oneStartMove
+        oneStartMove.map((obj) => {
+          if(obj > moveMaxNum){
+            moveMaxNum = obj
+          }
+          if(obj < moveMinNum){
+            moveMinNum = obj
+          }
+          return null
+        })
       }
       moveNum[i] = oneStepMove
     }
-    console.log(moveNum)
-    this.setState({moveNum: moveNum})
+    this.setState({
+      moveNum: moveNum,
+      moveMaxNum: moveMaxNum,
+      moveMinNum: moveMinNum
+    })
   }
 
-  //函数处理每步变化
+  //函数处理每步变化(0~25+26)
   stepChange = () => {
+    let stepMaxChange = 0
+    let stepMinChange = 0
     let stepChange = []
-    for(let i = 0;i < 8;i++){
+    for(let i = 0;i < this.state.steps;i++){
       let oneStep1 = []
       let oneStep2 = []
       let oneStepChange = []
@@ -170,16 +216,30 @@ export default class App extends Component {
           oneStepChange[j] = (oneStep2[j] / oneStep1[j] - 1).toFixed(5)
         }
       }
+      oneStepChange.map((change) => {
+        if(change > stepMaxChange && change !== 'blank' && change !== 'infinite'){
+          stepMaxChange = change
+        }
+        if(change < stepMinChange && change !== 'blank' && change !== 'infinite'){
+          stepMinChange = change
+        }
+        return null
+      })
       stepChange[i] = oneStepChange
     }
-    console.log(stepChange)
-    this.setState({stepChange: stepChange})
+    this.setState({
+      stepChange: stepChange,
+      stepMaxChange: stepMaxChange,
+      stepMinChange: stepMinChange
+    })
   }
   
-  //函数处理转步变化
+  //函数处理转步变化(0~25+26)
   moveChange = () => {
+    let moveMaxChange = 0
+    let moveMinChange = 0
     let moveChange = []
-    for(let i = 0;i < 7;i++){
+    for(let i = 0;i < this.state.steps - 1;i++){
       let oneStepChange = []
       for(let j = 0;j < 26;j++){
         let oneStartMove1 = []
@@ -211,7 +271,7 @@ export default class App extends Component {
         })
         this.state.dataSet2.map((dataUnit) => {
           if(dataUnit[i] === j + 1 && dataUnit[i + 1] === undefined){
-            oneStartMove1[26]++
+            oneStartMove2[26]++
           }
           return null
         })
@@ -224,21 +284,81 @@ export default class App extends Component {
             oneStartChange[k] = (oneStartMove2[k] / oneStartMove1[k] - 1).toFixed(5)
           }
         }
+        oneStartChange.map((change) => {
+          if(change > moveMaxChange && change !== 'blank' && change !== 'infinite'){
+            moveMaxChange = change
+          }
+          if(change < moveMinChange && change !== 'blank' && change !== 'infinite'){
+            moveMinChange = change
+          }
+          return null
+        })
         oneStepChange[j] = oneStartChange
       }
       moveChange[i] = oneStepChange
     }
-    console.log(moveChange)
-    this.setState({moveChange: moveChange})
+    this.setState({
+      moveChange: moveChange,
+      moveMaxChange: moveMaxChange,
+      moveMinChange: moveMinChange
+    })
+  }
+
+  //刷新
+  refresh = () => {
+    this.setState({
+      dataSet1: this.dataSet(),
+      dataSet2: this.dataSet()
+    })
+    this.stepNum()
+    this.stepChange()
+    this.moveNum()
+    this.moveChange()
+  }
+
+  //更改步数
+  changeSteps = () => {
+    let select = document.getElementById('stepNumbers')
+    let index = select.selectedIndex
+    this.setState({
+      steps: select.options[index].value
+    })
+    this.stepNum()
+    this.stepChange()
+    this.moveNum()
+    this.moveChange()
   }
 
   // 渲染图像
   render () {
     return (
             <div>
-            <Control/>
-            <Board/>
-            <Label/>
+            <Control
+            refresh={this.refresh}
+            changeSteps={this.changeSteps}/>
+            <Board
+            stepNum={this.state.stepNum}
+            moveNum={this.state.moveNum}
+            stepChange={this.state.stepChange}
+            moveChange={this.state.moveChange}
+            stepMaxNum={this.state.stepMaxNum}
+            stepMinNum={this.state.stepMinNum === 0 ? 1 : this.state.stepMinNum}
+            moveMaxNum={this.state.moveMaxNum}
+            moveMinNum={this.state.moveMinNum === 0 ? 1 : this.state.moveMinNum} 
+            stepMaxChange={this.state.stepMaxChange}
+            stepMinChange={this.state.stepMinChange}
+            moveMaxChange={this.state.moveMaxChange}
+            moveMinChange={this.state.moveMinChange}
+            steps={this.state.steps}/>
+            <Label
+            stepMaxNum={this.state.stepMaxNum}
+            stepMinNum={this.state.stepMinNum}
+            moveMaxNum={this.state.moveMaxNum}
+            moveMinNum={this.state.moveMinNum} 
+            stepMaxChange={this.state.stepMaxChange}
+            stepMinChange={this.state.stepMinChange}
+            moveMaxChange={this.state.moveMaxChange}
+            moveMinChange={this.state.moveMinChange}/>
             </div>
     )
   }
